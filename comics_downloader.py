@@ -10,7 +10,7 @@
 
 '''
 
-rom datetime import datetime, timedelta
+from datetime import datetime, timedelta
 import requests
 import os
 import threading
@@ -21,7 +21,7 @@ import concurrent.futures
 
 
 comix_date_start = "2023/01/29"
- = "2023/01/31"
+comix_date_end = "2023/01/31"
 
 # Create a function in Python that generates a list of dates by specifying a start date and an end date:
 def date_range(start, end):
