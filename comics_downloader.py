@@ -43,7 +43,7 @@ dates = ["2023/01/29", "2023/01/30", "2023/01/31"]
 
 comics_url = []
 
-# Create a comix_img directory, if it doesn't exist. This is where we will save the files
+# Create a download_folder directory, if it doesn't exist. This is where we will save the files
 
 if not os.path.isdir(download_folder):
      os.mkdir(download_folder)
@@ -79,7 +79,7 @@ hence the list index is out of range and causes an error.
 To fix this, I had to modify the code to handle cases where the title tag is not found in the HTML response.
 
 also
-The subdirectory "comix_img" uses double backslashes (\\) to separate the path components, 
+The subdirectory "download_folder" uses double backslashes (\\) to separate the path components, 
 which is the correct format for Windows paths.
 
 '''
