@@ -8,8 +8,8 @@ import concurrent.futures
 
 
 comics_name = 'garfield'  # should be the same as in the url https://www.gocomics.com/garfield/
-comix_date_start = "2023/01/03"
-comix_date_end = "2023/01/31"
+comics_date_start = "2023/01/29"  # beginning of the period in the format YEAR/MONTH/DAY ('%Y/%m/%d')
+comics_date_end = "2023/01/31"  # end of period format YEAR/MONTH/DAY ('%Y/%m/%d')
 download_folder = "garfield_comics"
 
 # Create a function in Python that generates a list of dates by specifying a start date and an end date:
@@ -24,12 +24,12 @@ def date_range(start, end):
     return date_list
 
 
-dates = date_range(comix_date_start, comix_date_end)
+dates = date_range(comics_date_start, comics_date_end)
 
 '''
 # for debugging
 print(dates)
-dates = ["2023/01/29", "2023/01/30", "2023/01/31"]
+dates = ["2023/01/29", "2023/01/30", "2023/01/31"]  # dates set manually, without using the cycle above
 '''
 # Part 1 gets the list of links to the images
 
@@ -56,24 +56,18 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
 
 '''
 print(comics_url)
-
-
 # for debugging
 comics_url = ['https://assets.amuniversal.com/bbae9e406978013bd934005056a9545d',
               'https://assets.amuniversal.com/bea2a9c06978013bd934005056a9545d',
               'https://assets.amuniversal.com/307b96d06316013bd77a005056a9545d']
               
 # Part 2, saving files, having a reference list (comics_url)
-
-
 The HTML response does not contain a title tag, so the script cannot retrieve the title of the comic. 
 hence the list index is out of range and causes an error.
 To fix this, I had to modify the code to handle cases where the title tag is not found in the HTML response.
-
 also
 The subdirectory "download_folder" uses double backslashes (\\) to separate the path components, 
 which is the correct format for Windows paths.
-
 '''
 def download_comic(url):
     try:
