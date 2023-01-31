@@ -1,11 +1,3 @@
-'''
-- The script loads and saves the comic book image files with the name specified in the HTML <title> tag.
-- The script is multi-threaded and has a limit on the number of simultaneous downloads to avoid server overload.
-- The script checks for missing files and displays error messages
-- Script has a progress bar to show the loading progress
-- The script must store the uploaded files in the comix_img subdirectory in windows
-'''
-
 from datetime import datetime, timedelta
 import requests
 import os
@@ -66,7 +58,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
 print(comics_url)
 
 
-# для отладки
+# for debugging
 comics_url = ['https://assets.amuniversal.com/bbae9e406978013bd934005056a9545d',
               'https://assets.amuniversal.com/bea2a9c06978013bd934005056a9545d',
               'https://assets.amuniversal.com/307b96d06316013bd77a005056a9545d']
