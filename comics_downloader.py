@@ -1,13 +1,9 @@
 '''
-
-
 - The script loads and saves the comic book image files with the name specified in the HTML <title> tag.
 - The script is multi-threaded and has a limit on the number of simultaneous downloads to avoid server overload.
 - The script checks for missing files and displays error messages
 - Script has a progress bar to show the loading progress
 - The script must store the uploaded files in the comix_img subdirectory in windows
-
-
 '''
 
 from datetime import datetime, timedelta
@@ -19,9 +15,10 @@ from bs4 import BeautifulSoup
 import concurrent.futures
 
 
-
-comix_date_start = "2023/01/29"
+comics_name = 'garfield'  # should be the same as in the url https://www.gocomics.com/garfield/
+comix_date_start = "2023/01/03"
 comix_date_end = "2023/01/31"
+download_folder = "garfield_comics"
 
 # Create a function in Python that generates a list of dates by specifying a start date and an end date:
 def date_range(start, end):
@@ -43,15 +40,17 @@ print(dates)
 dates = ["2023/01/29", "2023/01/30", "2023/01/31"]
 '''
 # Part 1 gets the list of links to the images
+
 comics_url = []
 
 # Create a comix_img directory, if it doesn't exist. This is where we will save the files
-if not os.path.isdir("comix_img"):
-     os.mkdir("comix_img")
+
+if not os.path.isdir(download_folder):
+     os.mkdir(download_folder)
 
 
 def fetch_url(date):
-    url = f"https://www.gocomics.com/garfield/{date}"
+    url = f"https://www.gocomics.com/{comics_name}/{date}"
     res = requests.get(url)
     soup = BeautifulSoup(res.text, "html.parser")
     container = soup.find("div", class_="comic__container")
@@ -92,9 +91,9 @@ def download_comic(url):
             if len(title) > 1:
                 title = title[1].split("</title>")[0]
                 # Fix the filename for Windows compatibility
-                filename = f"comix_img\\{title}.gif".replace(':', '_').replace('/', '_').replace('\\', '_')
+                filename = f"{download_folder}\\{title}.gif".replace(':', '_').replace('/', '_').replace('\\', '_')
             else:
-                filename = f"comix_img\\{url.split('/')[-1]}.gif"
+                filename = f"{download_folder}\\{url.split('/')[-1]}.gif"
             if not os.path.exists(filename):
                 try:
                     with open(filename, "wb") as f:
@@ -135,5 +134,3 @@ for t in threads:
     t.join()
 
 pbar.close()
-
-
