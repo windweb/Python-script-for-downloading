@@ -63,7 +63,7 @@ comics_url = ['https://assets.amuniversal.com/bbae9e406978013bd934005056a9545d',
               
 # Part 2, saving files, having a reference list (comics_url)
 The HTML response does not contain a title tag, so the script cannot retrieve the title of the comic. 
-hence the list index is out of range and causes an error.
+Consequently, the list index is out of range and causes an error.
 To fix this, I had to modify the code to handle cases where the title tag is not found in the HTML response.
 also
 The subdirectory "download_folder" uses double backslashes (\\) to separate the path components, 
