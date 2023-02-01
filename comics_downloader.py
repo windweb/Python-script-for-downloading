@@ -1,122 +1,114 @@
 from datetime import datetime, timedelta
 import requests
+from bs4 import BeautifulSoup
 import os
 import threading
-import tqdm
-from bs4 import BeautifulSoup
-import concurrent.futures
+from tqdm import tqdm
 
 
 comics_name = 'garfield'  # should be the same as in the url https://www.gocomics.com/garfield/
 comics_date_start = "2023/01/29"  # beginning of the period in the format YEAR/MONTH/DAY ('%Y/%m/%d')
 comics_date_end = "2023/01/31"  # end of period format YEAR/MONTH/DAY ('%Y/%m/%d')
-download_folder = "garfield_comics"
+download_folder = "garfield_comics"  # folder to store downloaded files
+num_of_threads = 5  # maximum number of simultaneous downloads
 
-# Create a function in Python that generates a list of dates by specifying a start date and an end date:
+
 def date_range(start, end):
+    '''
+    Returns a dictionary of dates in the format YEAR/MONTH/DAY as keys and corresponding URL of the comics for the respective date as values.
+    The function uses the datetime and timedelta modules to generate a range of dates
+    from the start date to the end date and constructs the URL for each date.
+    It then uses the requests module to make a GET request to the URL and retrieves the HTML content.
+    The BeautifulSoup library is used to parse the HTML and extract the URL of the image for the comic strip.
+    '''
     start_date = datetime.strptime(start, '%Y/%m/%d')
     end_date = datetime.strptime(end, '%Y/%m/%d')
-    date_list = []
     current_date = start_date
+    dictionary_data = {}
     while current_date <= end_date:
-        date_list.append(current_date.strftime('%Y/%m/%d'))
+        date_str = current_date.strftime('%Y/%m/%d')
+        key = date_str
+        value = f"https://www.gocomics.com/{comics_name}/{date_str}"
+        res = requests.get(value)
+        soup = BeautifulSoup(res.text, "html.parser")
+        container = soup.find("div", class_="comic__container")
+        img = container.find("img", class_="lazyload img-fluid")
+        src = img["src"]
+        dictionary_data[key] = src
         current_date += timedelta(days=1)
-    return date_list
+    return dictionary_data
 
 
-dates = date_range(comics_date_start, comics_date_end)
 
-'''
-# for debugging
-print(dates)
-dates = ["2023/01/29", "2023/01/30", "2023/01/31"]  # dates set manually, without using the cycle above
-'''
-# Part 1 gets the list of links to the images
+def download_comic(key, url, bar):
+    """
+    Downloads a comic strip for a given date.
+    The function takes in a date string, URL of the comic strip, and a progress bar object.
+    It generates the filename for the comic strip using the date string and the format YEAR_MONTH_DAY.gif.
+    The function checks if the file already exists, and if it does, skips the download.
+    If the file does not exist, the function uses the requests module to make a GET request to the URL and retrieves the image content.
+    The image content is then written to a file using the filename.
+    """
+    filename = key.replace('/', '_').replace(':', '_').replace('\\', '_') + ".gif"
+    full_path = os.path.join(download_folder, filename)
+    if os.path.exists(full_path):
+        print(f"{filename} already exists, skipping download")
+        return
 
-comics_url = []
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(full_path, "wb") as f:
+            f.write(response.content)
+        print(f"{filename} has been downloaded successfully")
+        bar.update(1)
+    else:
+        print(f"Error downloading {filename}, status code: {response.status_code}")
 
-# Create a download_folder directory, if it doesn't exist. This is where we will save the files
 
-if not os.path.isdir(download_folder):
-     os.mkdir(download_folder)
+def download_threads(threads):
+    """
+    Starts and joins a batch of threads.
+    The function takes in a list of thread objects and starts num_of_threads number of threads at a time.
+    It waits for all the threads to finish before starting the next batch.
+    """
+    for i in range(0, len(threads), num_of_threads):
+        for j in range(i, min(i + num_of_threads, len(threads))):
+            threads[j].start()
+        for j in range(i, min(i + num_of_threads, len(threads))):
+            threads[j].join()
 
 
-def fetch_url(date):
-    url = f"https://www.gocomics.com/{comics_name}/{date}"
-    res = requests.get(url)
-    soup = BeautifulSoup(res.text, "html.parser")
-    container = soup.find("div", class_="comic__container")
-    img = container.find("img", class_="lazyload img-fluid")
-    src = img["src"]
-    comics_url.append(src)
 
-# limit the number of simultaneous openings to 5
-with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-    results = [executor.submit(fetch_url, date) for date in dates]
+def main():
+    """
+    The main function that ties everything together.
+    The function creates a dictionary of comic strips using the date_range function.
+    If the download folder does not exist, it creates the folder.
+    It initializes a progress bar using the tqdm library and creates a list of threads using the download_comic function.
+    The function then uses the download_threads function to start and join the threads.
+    The function prints a message indicating that all files have been downloaded successfully.
+    """
+    dictionary = date_range(comics_date_start, comics_date_end)
+    if not os.path.exists(download_folder):
+        os.makedirs(download_folder)
+    threads = []
+    bar = tqdm(total=len(dictionary))
+    for key, value in dictionary.items():
+        threads.append(threading.Thread(target=download_comic, args=(key, value, bar)))
+    download_threads(threads)
+    print("All files have been downloaded successfully")
 
-'''
-print(comics_url)
-# for debugging
-comics_url = ['https://assets.amuniversal.com/bbae9e406978013bd934005056a9545d',
-              'https://assets.amuniversal.com/bea2a9c06978013bd934005056a9545d',
-              'https://assets.amuniversal.com/307b96d06316013bd77a005056a9545d']
-              
-# Part 2, saving files, having a reference list (comics_url)
-The HTML response does not contain a title tag, so the script cannot retrieve the title of the comic. 
-Consequently, the list index is out of range and causes an error.
-To fix this, I had to modify the code to handle cases where the title tag is not found in the HTML response.
-also
-The subdirectory "download_folder" uses double backslashes (\\) to separate the path components, 
-which is the correct format for Windows paths.
-'''
-def download_comic(url):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            title = response.text.split("<title>")
-            if len(title) > 1:
-                title = title[1].split("</title>")[0]
-                # Fix the filename for Windows compatibility
-                filename = f"{download_folder}\\{title}.gif".replace(':', '_').replace('/', '_').replace('\\', '_')
-            else:
-                filename = f"{download_folder}\\{url.split('/')[-1]}.gif"
-            if not os.path.exists(filename):
-                try:
-                    with open(filename, "wb") as f:
-                        f.write(response.content)
-                        print(f"Comic {title} successfully downloaded")
-                        print()
-                except Exception as e:
-                    print(f"Error writing {filename}: {e}")
-                    print()
-            else:
-                print(f"Comic {title} already exists")
-                print()
-        else:
-            print(f"Error downloading {url}: status code {response.status_code}")
-            print()
-    except Exception as e:
-        print(f"Error downloading {url}: {e}")
 
-# Limit the number of simultaneous downloads to 2
-semaphore = threading.Semaphore(2)
+if __name__ == "__main__":
+    main()
 
-# Progress bar for download progress
-pbar = tqdm.tqdm(total=len(comics_url))
+"""
+The construction if __name__ == "__main__": 
+is a way to ensure that a Python script is only executed as the main program and not imported as a module into another script.
 
-threads = []
-for url in comics_url:
-    # Wait for the semaphore to be available before downloading a new comic
-    semaphore.acquire()
-    t = threading.Thread(target=download_comic, args=(url,), name=url)
-    t.start()
-    threads.append(t)
-    # Release the semaphore after starting a new download
-    semaphore.release()
-    pbar.update(1)
+When a Python script is run, the __name__ special attribute is automatically set to "__main__". 
+Therefore, if the script is being executed as the main program, __name__ will be equal to "__main__". 
+If the script is being imported as a module into another script, __name__ will be set to the name of the module.
 
-# Wait for all threads to finish
-for t in threads:
-    t.join()
-
-pbar.close()
+So, in this code, the main() function is only run if the script is executed as the main program, and not imported as a module.
+"""
