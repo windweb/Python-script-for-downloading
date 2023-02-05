@@ -7,6 +7,8 @@ from tqdm import tqdm
 
 
 comics_name = 'garfield'  # should be the same as in the url https://www.gocomics.com/garfield/
+# IMPORTANT. The script is tested on a period of up to 2 months.
+# In the case of specifying a period of more than 60 months may be blocked by the server
 comics_date_start = "2023/01/29"  # beginning of the period in the format YEAR/MONTH/DAY ('%Y/%m/%d')
 comics_date_end = "2023/01/31"  # end of period format YEAR/MONTH/DAY ('%Y/%m/%d')
 download_folder = "garfield_comics"  # folder to store downloaded files
@@ -50,7 +52,7 @@ def download_comic(key, url, bar):
     If the file does not exist, the function uses the requests module to make a GET request to the URL and retrieves the image content.
     The image content is then written to a file using the filename.
     """
-    filename = key.replace('/', '_').replace(':', '_').replace('\\', '_') + ".{format_img}"
+    filename = key.replace('/', '_').replace(':', '_').replace('\\', '_') + f'.{format_img}'
     full_path = os.path.join(download_folder, filename)
     if os.path.exists(full_path):
         print(f"{filename} already exists, skipping download")
