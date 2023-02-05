@@ -19,6 +19,7 @@ num_of_threads = 5  # maximum number of simultaneous downloads
 def date_range(start, end):
     '''
     Returns a dictionary of dates in the format YEAR/MONTH/DAY as keys and corresponding URL of the comics for the respective date as values.
+    In the console, while the function is running, a message is displayed that shows which date the image matches, indicating its url
     The function uses the datetime and timedelta modules to generate a range of dates
     from the start date to the end date and constructs the URL for each date.
     It then uses the requests module to make a GET request to the URL and retrieves the HTML content.
@@ -38,6 +39,7 @@ def date_range(start, end):
         img = container.find("img", class_="lazyload img-fluid")
         src = img["src"]
         dictionary_data[key] = src
+        print(f'For date {key} matches the image by url={src}')
         current_date += timedelta(days=1)
     return dictionary_data
 
