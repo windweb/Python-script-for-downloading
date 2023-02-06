@@ -85,7 +85,7 @@ def download_comic(key, url, bar):
         print(f"🆘Error downloading {filename}, status code: {response.status_code}🆘")
         print(f'‼!!!!!!!!!!!!!!!!!!!! DATE = {key_temp} URL = {url} !!!!!!!!!!!!!!!!!!!!‼')
         print(f"Do you want to try downloading files that you couldn't download before? (y/n)?")
-        choose = str(input('TYPE (y) OR (n) >>> ')).lower()
+        choose = str(input('TYPE (y) OR (n) 🥖>>> ')).lower()
         if choose == 'y':
             key_error = key_temp
             url_error = url
@@ -126,7 +126,7 @@ def main():
     for key, value in dictionary.items():
         threads.append(threading.Thread(target=download_comic, args=(key, value, bar)))
     download_threads(threads)
-    print("🏁All files have been downloaded successfully🏁")
+    print("✔🏁All files have been downloaded successfully🏁✔")
 
 
 if __name__ == "__main__":
