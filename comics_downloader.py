@@ -16,6 +16,19 @@ format_img = 'jpg'  # like png, gif, jpg, etc.
 num_of_threads = 5  # maximum number of simultaneous downloads
 
 
+def download_comic_error(key, url):
+    filename = key.replace('/', '_').replace(':', '_').replace('\\', '_') + f'.{format_img}'
+    full_path = os.path.join(download_folder, filename)
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(full_path, "wb") as f:
+            f.write(response.content)
+        print(f"✅{filename} has been downloaded successfully✅")
+    else:
+        print(f"🆘Error downloading {filename}, status code: {response.status_code}🆘")
+        print(f"🆘Error downloading {filename}, url: {url}🆘")
+
+
 def date_range(start, end):
     '''
     Returns a dictionary of dates in the format YEAR/MONTH/DAY as keys and corresponding URL of the comics for the respective date as values.
@@ -54,20 +67,32 @@ def download_comic(key, url, bar):
     If the file does not exist, the function uses the requests module to make a GET request to the URL and retrieves the image content.
     The image content is then written to a file using the filename.
     """
+    key_temp = key
     filename = key.replace('/', '_').replace(':', '_').replace('\\', '_') + f'.{format_img}'
     full_path = os.path.join(download_folder, filename)
+
     if os.path.exists(full_path):
-        print(f"{filename} already exists, skipping download")
+        print(f"♻{filename} already exists, skipping download♻")
         return
 
     response = requests.get(url)
     if response.status_code == 200:
         with open(full_path, "wb") as f:
             f.write(response.content)
-        print(f"{filename} has been downloaded successfully")
+        rint(f"✅{filename} has been downloaded successfully✅")
         bar.update(1)
     else:
-        print(f"Error downloading {filename}, status code: {response.status_code}")
+        print(f"🆘Error downloading {filename}, status code: {response.status_code}🆘")
+        print(f'‼!!!!!!!!!!!!!!!!!!!! DATE = {key_temp} URL = {url} !!!!!!!!!!!!!!!!!!!!‼')
+        print(f"Do you want to try downloading files that you couldn't download before? (y/n)?")
+        choose = str(input('TYPE (y) OR (n) >>> ')).lower()
+        if choose == 'y':
+            key_error = key_temp
+            url_error = url
+            return download_comic_error(key_error, url_error)
+        else:
+            print(f'go next step')
+            pass
 
 
 def download_threads(threads):
@@ -101,7 +126,7 @@ def main():
     for key, value in dictionary.items():
         threads.append(threading.Thread(target=download_comic, args=(key, value, bar)))
     download_threads(threads)
-    print("All files have been downloaded successfully")
+    print("🏁All files have been downloaded successfully🏁")
 
 
 if __name__ == "__main__":
